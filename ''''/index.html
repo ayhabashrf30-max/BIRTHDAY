@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 Abdo's Birthday</title>
+    <style>
+        :root {
+            --navy: #1a2a3a;
+            --navy-light: #1f3347;
+            --gold: #c9a96e;
+            --gold-light: #d4b87a;
+            --gold-pale: #e8d5b0;
+            --bg-warm: #fdfbf7;
+            --white: #ffffff;
+            --text-dark: #2c2c2c;
+            --shadow-lg: 0 20px 50px rgba(26, 42, 58, 0.14);
+            --radius-lg: 24px;
+            --font-ar: 'Segoe UI', 'Tahoma', sans-serif;
+            --font-en: 'Segoe UI', 'Montserrat', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-ar);
+            background: #fdfbf7;
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* خلفية احتفالية متحركة */
+        .party-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(18px);
+            transition: opacity 0.5s, transform 0.5s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px 40px;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            position: relative;
+            z-index: 2;
+        }
+
+        .screen-welcome {
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        .welcome-icon-row span {
+            font-size: 2.2rem;
+            animation: bounceIcon 2s infinite;
+        }
+
+        @keyframes bounceIcon {
+            0%,100%{ transform: translateY(0); }
+            50%{ transform: translateY(-14px); }
+        }
+
+        .welcome-title {
+            font-family: var(--font-en);
+            font-size: 2.3rem;
+            color: var(--navy);
+        }
+        .highlight {
+            color: var(--gold);
+            font-size: 1.2em;
+        }
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            background: var(--navy-light);
+            transform: translateY(-3px);
+        }
+
+        .screen-quiz { justify-content: center; background: #fbf9f5; gap: 24px; }
+        .quiz-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 28px 22px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+        .quiz-title { font-family: var(--font-en); font-size: 1.5rem; color: var(--navy); }
+        .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+        .btn-option {
+            padding: 14px;
+            border: 2px solid #e0d9cc;
+            border-radius: 18px;
+            background: #fefcf8;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-option:hover { border-color: var(--gold); }
+        .correct-highlight {
+            border-color: #4a9c6c !important;
+            background: #f2faf5 !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+        }
+        .modal-emoji { font-size: 4rem; }
+        .btn-retry {
+            background: var(--navy);
+            color: white;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+
+        .screen-celebration { background: #f9f7f2; gap: 16px; padding-top: 30px; }
+        .confetti-canvas {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 430px;
+            width: 100%;
+        }
+        .photo-item {
+            aspect-ratio: 1/1;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .lightbox {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .lightbox.show { opacity: 1; pointer-events: auto; }
+        .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 12px; }
+
+        .screen-message { gap: 20px; padding-top: 50px; }
+        .message-title { font-size: 2rem; color: var(--navy); }
+        .message-divider {
+            width: 60px; height: 3px; background: var(--gold); margin: 6px auto;
+        }
+        .signature { font-weight: 600; }
+
+        .video-section {
+            width: 100%;
+            max-width: 300px; /* ضيق عشان الفيديو العمودي */
+            margin: 8px auto;
+        }
+        /* أهم تغيير: نسبة العرض إلى الارتفاع عمودية */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 9 / 16; /* فيديو بالطول */
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* يحافظ على نسبة الفيديو الأصلي دون قص */
+            background: #000;
+        }
+        .video-play-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        .play-btn {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--navy);
+            position: relative;
+        }
+        .play-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 55%;
+            transform: translate(-50%, -50%);
+            border-left: 20px solid white;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+        }
+        .video-close-btn {
+            position: absolute;
+            top: 10px; right: 12px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+        }
+        .video-close-btn.visible { display: flex; align-items: center; justify-content: center; }
+
+        .audio-toggle {
+            position: fixed;
+            bottom: 24px; right: 20px;
+            width: 44px; height: 44px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.3rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+        .audio-toggle.visible { opacity: 1; pointer-events: auto; }
+
+        @media (max-width: 480px) {
+            .welcome-title { font-size: 1.7rem; }
+            .photo-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="party-background" id="partyCanvas"></canvas>
+
+    <div class="app-container">
+        <div class="screen screen-welcome active" id="screen1">
+            <div class="welcome-icon-row">
+                <span>🎈</span><span>🎂</span><span>🎉</span>
+            </div>
+            <h1 class="welcome-title">Today is <span class="highlight">Abdo</span>'s Birthday</h1>
+            <p style="font-size:1.1rem; color:#5a5a5a;">✨ Let the celebration begin</p>
+            <button class="btn-primary" onclick="goToQuiz()">ابدأ الكويز ←</button>
+        </div>
+
+        <div class="screen screen-quiz" id="screen2">
+            <div class="quiz-card">
+                <h2 class="quiz-title">Quick Quiz for Abdo!</h2>
+                <p style="color:#666;">جاوب صح عشان تعرف تهدي</p>
+                <p style="font-size:1.2rem; font-weight:600; margin:16px 0;">بتحب ايه اكتر؟</p>
+                <div class="quiz-options">
+                    <button class="btn-option" onclick="answerWrong(this)">ميسي</button>
+                    <button class="btn-option" onclick="answerWrong(this)">محشي ورق عنب</button>
+                    <button class="btn-option correct-answer" onclick="answerCorrect()">انا</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen screen-celebration" id="screen3">
+            <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+            <h2 style="font-family:var(--font-en); font-size:1.8rem; color:var(--navy);">Let's Celebrate Abdo! 🎂</h2>
+            <button style="border:2px solid var(--gold); background:rgba(255,255,255,0.6); color:var(--gold); padding:8px 24px; border-radius:50px; cursor:pointer;" onclick="burstConfetti()">CELEBRATE!</button>
+            <h3 style="color:var(--navy); margin-top:10px;">Our Beautiful Moments</h3>
+            <div class="photo-grid" id="photoGrid">
+                <div class="photo-item" onclick="openLightbox('1.jpg')"><img src="1.jpg" alt="1"></div>
+                <div class="photo-item" onclick="openLightbox('2.jpg')"><img src="2.jpg" alt="2"></div>
+                <div class="photo-item" onclick="openLightbox('3.jpg')"><img src="3.jpg" alt="3"></div>
+                <div class="photo-item" onclick="openLightbox('4.jpg')"><img src="4.jpg" alt="4"></div>
+                <div class="photo-item" onclick="openLightbox('5.jpg')"><img src="5.jpg" alt="5"></div>
+                <div class="photo-item" onclick="openLightbox('6.jpg')"><img src="6.jpg" alt="6"></div>
+            </div>
+            <button style="background:var(--navy); color:white; border:none; padding:14px 32px; border-radius:50px; margin-top:10px; cursor:pointer;" onclick="goToMessage()">شوف الرسالة 🥳</button>
+        </div>
+
+        <div class="screen screen-message" id="screen4">
+            <h2 class="message-title"><span class="highlight">Abdo</span> حبيبي</h2>
+            <div class="message-divider"></div>
+            <p style="font-size:1.15rem; line-height:2; color:#333; max-width:400px; text-align:center;">
+                كل سنه وانت طيب ي أغلي عبدو ♥️<br>
+                عقبال 100 سنه يارب في سعاده و نجاح ديما يارب<br>
+                ربنا يخلينا سند لبعض ديما ي صحبي ♥️😍
+            </p>
+            <p style="font-size:1rem; line-height:1.9; color:#555; font-family:var(--font-en); font-style:italic; text-align:center;">
+                Happy birthday to my dearest friend!<br>
+                May every year bring you endless joy and success.<br>
+                So grateful to have you by my side, always. ❤️✨
+            </p>
+            <p class="signature">Your friend, <strong>Ehab</strong> ❤️</p>
+
+            <div class="video-section">
+                <p style="color:var(--navy); font-weight:600; margin-bottom:10px;">✦ A MESSAGE ✦ Watch This 🎬</p>
+                <div class="video-wrapper" id="videoWrapper">
+                    <video id="birthdayVideo" preload="metadata" playsinline>
+                        <source src="vedio.mp4" type="video/mp4">
+                    </video>
+                    <div class="video-play-overlay" id="videoPlayOverlay" onclick="playVideo()">
+                        <div class="play-btn"></div>
+                    </div>
+                    <button class="video-close-btn" id="videoCloseBtn" onclick="closeVideo()">✕</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="wrongModal">
+        <div class="modal-box">
+            <div class="modal-emoji">😡</div>
+            <p style="font-size:1.2rem; font-weight:600;">طب مفيش عيد ميلاد 🎂</p>
+            <button class="btn-retry" onclick="closeModal()">حاول تاني</button>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img src="" id="lightboxImg" alt="memory">
+    </div>
+
+    <button class="audio-toggle" id="audioToggle" onclick="toggleAudio()">🔊</button>
+
+    <audio id="bgAudio" preload="auto" loop>
+        <source src="1782094060502.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const screens = {
+            screen1: document.getElementById('screen1'),
+            screen2: document.getElementById('screen2'),
+            screen3: document.getElementById('screen3'),
+            screen4: document.getElementById('screen4')
+        };
+        const bgAudio = document.getElementById('bgAudio');
+        const audioToggle = document.getElementById('audioToggle');
+        const wrongModal = document.getElementById('wrongModal');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const ctxConfetti = confettiCanvas.getContext('2d');
+        const videoEl = document.getElementById('birthdayVideo');
+        const videoPlayOverlay = document.getElementById('videoPlayOverlay');
+        const videoCloseBtn = document.getElementById('videoCloseBtn');
+        const videoWrapper = document.getElementById('videoWrapper');
+
+        let currentScreen = 'screen1';
+        let confettiParticles = [], confettiRunning = false;
+        let wasAudioPlaying = false; // متغير لتذكّر حالة الأغنية قبل الفيديو
+
+        // خلفية الحفلة
+        const partyCanvas = document.getElementById('partyCanvas');
+        const ctxParty = partyCanvas.getContext('2d');
+        let partyElements = [];
+        const emojis = ['🎈', '🎂', '🎉', '🎁', '✨', '🌟', '💫', '🎀'];
+
+        function resizePartyCanvas() {
+            partyCanvas.width = window.innerWidth;
+            partyCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizePartyCanvas);
+        resizePartyCanvas();
+
+        for (let i = 0; i < 25; i++) {
+            partyElements.push({
+                x: Math.random() * partyCanvas.width,
+                y: Math.random() * partyCanvas.height,
+                emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                size: 16 + Math.random() * 18,
+                speedX: (Math.random() - 0.5) * 0.4,
+                speedY: -0.3 - Math.random() * 0.7,
+                opacity: 0.5 + Math.random() * 0.5
+            });
+        }
+
+        function animatePartyBackground() {
+            ctxParty.clearRect(0, 0, partyCanvas.width, partyCanvas.height);
+            for (let p of partyElements) {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.y < -40) { p.y = partyCanvas.height + 20; p.x = Math.random() * partyCanvas.width; }
+                if (p.x < -30) p.x = partyCanvas.width + 20;
+                if (p.x > partyCanvas.width + 30) p.x = -20;
+                ctxParty.font = `${p.size}px "Segoe UI Emoji"`;
+                ctxParty.globalAlpha = p.opacity;
+                ctxParty.fillText(p.emoji, p.x, p.y);
+            }
+            requestAnimationFrame(animatePartyBackground);
+        }
+        animatePartyBackground();
+
+        function switchScreen(from, to) {
+            screens[from].classList.remove('active');
+            screens[to].classList.add('active');
+            currentScreen = to;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (to === 'screen3') startConfetti();
+            else stopConfetti();
+        }
+
+        function goToQuiz() {
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => {
+                    audioToggle.classList.add('visible');
+                    audioToggle.textContent = '🔊';
+                }).catch(() => {
+                    audioToggle.classList.add('visible');
+                    audioToggle.textContent = '🔇';
+                });
+            }
+            switchScreen('screen1', 'screen2');
+        }
+
+        function answerWrong(btn) {
+            btn.style.borderColor = '#d46868';
+            setTimeout(() => btn.style.borderColor = '#e0d9cc', 400);
+            wrongModal.classList.add('show');
+        }
+
+        function answerCorrect() {
+            document.querySelector('.correct-answer').classList.add('correct-highlight');
+            setTimeout(() => {
+                switchScreen('screen2', 'screen3');
+                document.querySelector('.correct-answer').classList.remove('correct-highlight');
+            }, 350);
+        }
+
+        function closeModal() { wrongModal.classList.remove('show'); }
+        function goToMessage() { switchScreen('screen3', 'screen4'); }
+
+        // الكونفيتي
+        function resizeConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfetti);
+        resizeConfetti();
+
+        function createConfetti() {
+            return {
+                x: Math.random() * confettiCanvas.width,
+                y: Math.random() * -100,
+                w: Math.random() * 10 + 5,
+                h: Math.random() * 5 + 2,
+                color: ['#f4c542','#e07070','#5ba0d0','#6dbe82','#c9a96e','#e894b5'][Math.floor(Math.random()*6)],
+                speedY: 2 + Math.random() * 3,
+                speedX: (Math.random() - 0.5) * 1.5,
+                rotation: Math.random() * 360,
+                rotSpeed: (Math.random() - 0.5) * 4
+            };
+        }
+
+        function burstConfetti(count = 60) {
+            for (let i = 0; i < count; i++) confettiParticles.push(createConfetti());
+            if (!confettiRunning && currentScreen === 'screen3') startConfettiLoop();
+        }
+
+        function startConfetti() {
+            confettiParticles = [];
+            for (let i = 0; i < 90; i++) confettiParticles.push(createConfetti());
+            startConfettiLoop();
+            setTimeout(() => burstConfetti(40), 500);
+        }
+
+        function startConfettiLoop() {
+            if (confettiRunning) return;
+            confettiRunning = true;
+            animateConfetti();
+        }
+
+        function stopConfetti() {
+            confettiRunning = false;
+            confettiParticles = [];
+            ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+
+        function animateConfetti() {
+            if (!confettiRunning) return;
+            ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = confettiParticles.length-1; i >= 0; i--) {
+                let p = confettiParticles[i];
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotSpeed;
+                if (p.y > confettiCanvas.height + 30) {
+                    confettiParticles.splice(i,1);
+                    if (confettiParticles.length < 150) confettiParticles.push(createConfetti());
+                    continue;
+                }
+                ctxConfetti.save();
+                ctxConfetti.translate(p.x, p.y);
+                ctxConfetti.rotate(p.rotation * Math.PI/180);
+                ctxConfetti.fillStyle = p.color;
+                ctxConfetti.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctxConfetti.restore();
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+
+        // اللايت بوكس
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('show');
+        }
+        function closeLightbox() {
+            lightbox.classList.remove('show');
+            setTimeout(() => { if (!lightbox.classList.contains('show')) lightboxImg.src = ''; }, 300);
+        }
+
+        // ========== الفيديو (مع إيقاف الأغنية) ==========
+        function playVideo() {
+            // حفظ حالة الأغنية قبل التشغيل
+            wasAudioPlaying = !bgAudio.paused;
+            if (wasAudioPlaying) {
+                bgAudio.pause();
+                audioToggle.textContent = '🔇';
+            }
+
+            // طلب ملء الشاشة مع محاولة تثبيت الوضع العمودي
+            if (videoWrapper.requestFullscreen) {
+                videoWrapper.requestFullscreen();
+            } else if (videoWrapper.webkitRequestFullscreen) {
+                videoWrapper.webkitRequestFullscreen();
+            }
+
+            // محاولة قفل الاتجاه للوضع الطولي (للتليفون)
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('portrait').catch(() => {});
+                }
+            } catch (e) {}
+
+            videoEl.play();
+            videoPlayOverlay.style.display = 'none';
+            videoCloseBtn.classList.add('visible');
+        }
+
+        function closeVideo() {
+            videoEl.pause();
+            videoEl.currentTime = 0;
+            videoPlayOverlay.style.display = 'flex';
+            videoCloseBtn.classList.remove('visible');
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+
+            // إرجاع الأغنية لو كانت شغالة قبل الفيديو
+            if (wasAudioPlaying) {
+                bgAudio.play();
+                audioToggle.textContent = '🔊';
+            }
+            wasAudioPlaying = false;
+        }
+
+        // عند الخروج من ملء الشاشة بأي طريقة أخرى
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                videoEl.pause();
+                videoEl.currentTime = 0;
+                videoPlayOverlay.style.display = 'flex';
+                videoCloseBtn.classList.remove('visible');
+
+                if (wasAudioPlaying) {
+                    bgAudio.play();
+                    audioToggle.textContent = '🔊';
+                }
+                wasAudioPlaying = false;
+            }
+        });
+
+        // التحكم اليدوي بالصوت
+        function toggleAudio() {
+            if (bgAudio.paused) {
+                bgAudio.play();
+                audioToggle.textContent = '🔊';
+            } else {
+                bgAudio.pause();
+                audioToggle.textContent = '🔇';
+            }
+        }
+        bgAudio.addEventListener('play', () => { audioToggle.textContent = '🔊'; audioToggle.classList.add('visible'); });
+        bgAudio.addEventListener('pause', () => { audioToggle.textContent = '🔇'; });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (wrongModal.classList.contains('show')) closeModal();
+                if (lightbox.classList.contains('show')) closeLightbox();
+            }
+        });
+
+        window.addEventListener('load', () => {
+            screens.screen1.classList.add('active');
+        });
+    </script>
+</body>
+</html>
